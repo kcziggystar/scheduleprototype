@@ -292,6 +292,50 @@ export function getPtoEntriesForCalendar(calendarId: string): PtoEntry[] {
   return PTO_ENTRIES.filter((p) => p.calendarId === calendarId);
 }
 
+// ─── PTO CRUD helpers ───────────────────────────────────────────────────────
+
+export function addPtoEntry(entry: Omit<PtoEntry, "id">): PtoEntry {
+  const newEntry: PtoEntry = { ...entry, id: `PTOE-${Date.now()}` };
+  PTO_ENTRIES.push(newEntry);
+  return newEntry;
+}
+
+export function updatePtoEntry(id: string, patch: Partial<Omit<PtoEntry, "id">>): PtoEntry | null {
+  const idx = PTO_ENTRIES.findIndex((e) => e.id === id);
+  if (idx === -1) return null;
+  PTO_ENTRIES[idx] = { ...PTO_ENTRIES[idx], ...patch };
+  return PTO_ENTRIES[idx];
+}
+
+export function deletePtoEntry(id: string): boolean {
+  const idx = PTO_ENTRIES.findIndex((e) => e.id === id);
+  if (idx === -1) return false;
+  PTO_ENTRIES.splice(idx, 1);
+  return true;
+}
+
+// ─── Holiday CRUD helpers ────────────────────────────────────────────────────
+
+export function addHolidayDate(entry: Omit<HolidayDate, "id">): HolidayDate {
+  const newEntry: HolidayDate = { ...entry, id: `HLD-${Date.now()}` };
+  HOLIDAY_DATES.push(newEntry);
+  return newEntry;
+}
+
+export function updateHolidayDate(id: string, patch: Partial<Omit<HolidayDate, "id">>): HolidayDate | null {
+  const idx = HOLIDAY_DATES.findIndex((h) => h.id === id);
+  if (idx === -1) return null;
+  HOLIDAY_DATES[idx] = { ...HOLIDAY_DATES[idx], ...patch };
+  return HOLIDAY_DATES[idx];
+}
+
+export function deleteHolidayDate(id: string): boolean {
+  const idx = HOLIDAY_DATES.findIndex((h) => h.id === id);
+  if (idx === -1) return false;
+  HOLIDAY_DATES.splice(idx, 1);
+  return true;
+}
+
 export const APPOINTMENT_TYPES = [
   { value: "cleaning",      label: "Routine Cleaning",          durationMinutes: 60 },
   { value: "checkup",       label: "Dental Check-up",           durationMinutes: 30 },

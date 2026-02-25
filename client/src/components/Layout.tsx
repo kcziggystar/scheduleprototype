@@ -13,6 +13,8 @@ import {
   Menu,
   X,
   Stethoscope,
+  Plane,
+  CalendarOff,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -32,11 +34,13 @@ const PATIENT_NAV = [
 ];
 
 const ADMIN_NAV = [
-  { href: "/admin",             label: "Dashboard",   icon: ClipboardList },
-  { href: "/admin/providers",   label: "Providers",   icon: Users },
-  { href: "/admin/shifts",      label: "Shift Plans", icon: Calendar },
-  { href: "/admin/locations",   label: "Locations",   icon: MapPin },
-  { href: "/admin/appointments",label: "Appointments",icon: Stethoscope },
+  { href: "/admin",              label: "Dashboard",    icon: ClipboardList },
+  { href: "/admin/providers",    label: "Providers",    icon: Users },
+  { href: "/admin/shifts",       label: "Shift Plans",  icon: Calendar },
+  { href: "/admin/locations",    label: "Locations",    icon: MapPin },
+  { href: "/admin/appointments", label: "Appointments", icon: Stethoscope },
+  { href: "/admin/pto",          label: "PTO Editor",   icon: Plane },
+  { href: "/admin/holidays",     label: "Holidays",     icon: CalendarOff },
 ];
 
 export function TopNav() {
