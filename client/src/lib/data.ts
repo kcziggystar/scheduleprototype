@@ -344,3 +344,272 @@ export const APPOINTMENT_TYPES = [
   { value: "whitening",     label: "Teeth Whitening",           durationMinutes: 90 },
   { value: "consultation",  label: "New Patient Consultation",  durationMinutes: 45 },
 ];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SCHEDULE MANAGEMENT LAYER
+// ShiftTemplate → ShiftPlanSlot → ProviderAssignment → ShiftOccurrence
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+/** A reusable, provider-agnostic shift shape */
+export interface ShiftTemplate {
+  id: string;
+  name: string;
+  weekDays: DayOfWeek[];
+  startTime: string;      // "HH:MM"
+  duration: string;       // ISO 8601 e.g. "PT8H"
+  locationId: string;
+  defaultRole: ProviderRole;
+  color: string;          // Tailwind bg class for grid display
+}
+
+/** A slot within a ShiftPlan that references a template */
+export interface ShiftPlanSlot {
+  id: string;
+  shiftPlanId: string;
+  cycleIndex: number;     // 1-based (Week A = 1, Week B = 2, Month = 1, etc.)
+  templateId: string;
+}
+
+/** Assigns a provider to a ShiftPlanSlot for a date range */
+export interface ProviderAssignment {
+  id: string;
+  providerId: string;
+  shiftPlanSlotId: string;
+  effectiveDate: string;  // YYYY-MM-DD
+  endDate: string | null; // null = open-ended
+}
+
+/** A concrete occurrence of a provider's shift on a specific date */
+export interface ShiftOccurrence {
+  id: string;
+  assignmentId: string;
+  date: string;           // YYYY-MM-DD
+  status: "scheduled" | "cancelled" | "swapped";
+  substituteProviderId: string | null;
+  note: string;
+}
+
+// ─── Seed Data ───────────────────────────────────────────────────────────────
+
+export const SHIFT_TEMPLATES: ShiftTemplate[] = [
+  {
+    id: "TPL-001",
+    name: "Full Day – Downtown",
+    weekDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    startTime: "09:00",
+    duration: "PT8H",
+    locationId: "LOC-001",
+    defaultRole: "Dentist",
+    color: "bg-blue-500",
+  },
+  {
+    id: "TPL-002",
+    name: "AM Half-Day – Downtown",
+    weekDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    startTime: "08:00",
+    duration: "PT4H",
+    locationId: "LOC-001",
+    defaultRole: "Dentist",
+    color: "bg-sky-400",
+  },
+  {
+    id: "TPL-003",
+    name: "PM Half-Day – Downtown",
+    weekDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    startTime: "13:00",
+    duration: "PT4H",
+    locationId: "LOC-001",
+    defaultRole: "Dentist",
+    color: "bg-indigo-400",
+  },
+  {
+    id: "TPL-004",
+    name: "Full Day – North",
+    weekDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    startTime: "09:00",
+    duration: "PT8H",
+    locationId: "LOC-002",
+    defaultRole: "Dentist",
+    color: "bg-emerald-500",
+  },
+  {
+    id: "TPL-005",
+    name: "AM Half-Day – North",
+    weekDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    startTime: "08:00",
+    duration: "PT4H",
+    locationId: "LOC-002",
+    defaultRole: "Dentist",
+    color: "bg-teal-400",
+  },
+  {
+    id: "TPL-006",
+    name: "Saturday Cover – Downtown",
+    weekDays: ["Sat"],
+    startTime: "09:00",
+    duration: "PT4H",
+    locationId: "LOC-001",
+    defaultRole: "Dentist",
+    color: "bg-amber-500",
+  },
+  {
+    id: "TPL-007",
+    name: "Hygienist Full Day – Downtown",
+    weekDays: ["Mon", "Tue", "Wed", "Thu"],
+    startTime: "08:00",
+    duration: "PT8H",
+    locationId: "LOC-001",
+    defaultRole: "Hygienist",
+    color: "bg-violet-500",
+  },
+  {
+    id: "TPL-008",
+    name: "Hygienist AM – Downtown",
+    weekDays: ["Fri"],
+    startTime: "08:00",
+    duration: "PT4H",
+    locationId: "LOC-001",
+    defaultRole: "Hygienist",
+    color: "bg-purple-400",
+  },
+];
+
+/** ShiftPlanSlots connect the existing ShiftPlans to the new templates */
+export const SHIFT_PLAN_SLOTS: ShiftPlanSlot[] = [
+  // SP-100 (2-week dentist rotation)
+  // Week A (cycleIndex 1)
+  { id: "SPS-101", shiftPlanId: "SP-100", cycleIndex: 1, templateId: "TPL-002" }, // AM Half Downtown Mon
+  { id: "SPS-102", shiftPlanId: "SP-100", cycleIndex: 1, templateId: "TPL-003" }, // PM Half Downtown Mon
+  { id: "SPS-103", shiftPlanId: "SP-100", cycleIndex: 1, templateId: "TPL-001" }, // Full Day Downtown Tue
+  { id: "SPS-104", shiftPlanId: "SP-100", cycleIndex: 1, templateId: "TPL-004" }, // Full Day North Thu
+  { id: "SPS-105", shiftPlanId: "SP-100", cycleIndex: 1, templateId: "TPL-005" }, // AM Half North Fri
+  // Week B (cycleIndex 2)
+  { id: "SPS-106", shiftPlanId: "SP-100", cycleIndex: 2, templateId: "TPL-004" }, // Full Day North Mon
+  { id: "SPS-107", shiftPlanId: "SP-100", cycleIndex: 2, templateId: "TPL-001" }, // Full Day Downtown Wed
+  { id: "SPS-108", shiftPlanId: "SP-100", cycleIndex: 2, templateId: "TPL-003" }, // PM Half Downtown Thu
+  { id: "SPS-109", shiftPlanId: "SP-100", cycleIndex: 2, templateId: "TPL-001" }, // Full Day Downtown Fri
+
+  // SP-200 (hygienist weekly)
+  { id: "SPS-201", shiftPlanId: "SP-200", cycleIndex: 1, templateId: "TPL-007" }, // Hyg Full Mon-Thu
+  { id: "SPS-202", shiftPlanId: "SP-200", cycleIndex: 1, templateId: "TPL-008" }, // Hyg AM Fri
+
+  // SP-300 (monthly Saturday)
+  { id: "SPS-301", shiftPlanId: "SP-300", cycleIndex: 1, templateId: "TPL-006" }, // Saturday Cover
+];
+
+export const PROVIDER_ASSIGNMENTS: ProviderAssignment[] = [
+  // Dr. Lee → Week A slots
+  { id: "PA-001", providerId: "DEN-001", shiftPlanSlotId: "SPS-101", effectiveDate: "2026-01-05", endDate: null },
+  { id: "PA-002", providerId: "DEN-001", shiftPlanSlotId: "SPS-102", effectiveDate: "2026-01-05", endDate: null },
+  { id: "PA-003", providerId: "DEN-001", shiftPlanSlotId: "SPS-103", effectiveDate: "2026-01-05", endDate: null },
+  { id: "PA-004", providerId: "DEN-001", shiftPlanSlotId: "SPS-104", effectiveDate: "2026-01-05", endDate: null },
+  { id: "PA-005", providerId: "DEN-001", shiftPlanSlotId: "SPS-105", effectiveDate: "2026-01-05", endDate: null },
+  // Dr. Lee → Saturday
+  { id: "PA-006", providerId: "DEN-001", shiftPlanSlotId: "SPS-301", effectiveDate: "2026-01-10", endDate: null },
+
+  // Dr. Patel → Week B slots
+  { id: "PA-007", providerId: "DEN-002", shiftPlanSlotId: "SPS-106", effectiveDate: "2026-01-05", endDate: null },
+  { id: "PA-008", providerId: "DEN-002", shiftPlanSlotId: "SPS-107", effectiveDate: "2026-01-05", endDate: null },
+  { id: "PA-009", providerId: "DEN-002", shiftPlanSlotId: "SPS-108", effectiveDate: "2026-01-05", endDate: null },
+  { id: "PA-010", providerId: "DEN-002", shiftPlanSlotId: "SPS-109", effectiveDate: "2026-01-05", endDate: null },
+
+  // Amy Chen → Hygienist slots
+  { id: "PA-011", providerId: "HYG-001", shiftPlanSlotId: "SPS-201", effectiveDate: "2026-01-05", endDate: null },
+  { id: "PA-012", providerId: "HYG-001", shiftPlanSlotId: "SPS-202", effectiveDate: "2026-01-05", endDate: null },
+];
+
+export const SHIFT_OCCURRENCES: ShiftOccurrence[] = [];
+
+// ─── Lookup helpers ──────────────────────────────────────────────────────────
+
+export function getShiftTemplate(id: string): ShiftTemplate | undefined {
+  return SHIFT_TEMPLATES.find((t) => t.id === id);
+}
+
+export function getSlotsForPlan(shiftPlanId: string): ShiftPlanSlot[] {
+  return SHIFT_PLAN_SLOTS.filter((s) => s.shiftPlanId === shiftPlanId);
+}
+
+export function getAssignmentsForProvider(providerId: string): ProviderAssignment[] {
+  return PROVIDER_ASSIGNMENTS.filter((a) => a.providerId === providerId);
+}
+
+export function getAssignmentsForSlot(slotId: string): ProviderAssignment[] {
+  return PROVIDER_ASSIGNMENTS.filter((a) => a.shiftPlanSlotId === slotId);
+}
+
+// ─── ShiftTemplate CRUD ──────────────────────────────────────────────────────
+
+export function addShiftTemplate(t: Omit<ShiftTemplate, "id">): ShiftTemplate {
+  const entry: ShiftTemplate = { ...t, id: `TPL-${Date.now()}` };
+  SHIFT_TEMPLATES.push(entry);
+  return entry;
+}
+
+export function updateShiftTemplate(id: string, patch: Partial<Omit<ShiftTemplate, "id">>): ShiftTemplate | null {
+  const idx = SHIFT_TEMPLATES.findIndex((t) => t.id === id);
+  if (idx === -1) return null;
+  SHIFT_TEMPLATES[idx] = { ...SHIFT_TEMPLATES[idx], ...patch };
+  return SHIFT_TEMPLATES[idx];
+}
+
+export function deleteShiftTemplate(id: string): boolean {
+  const idx = SHIFT_TEMPLATES.findIndex((t) => t.id === id);
+  if (idx === -1) return false;
+  SHIFT_TEMPLATES.splice(idx, 1);
+  return true;
+}
+
+// ─── ShiftPlanSlot CRUD ──────────────────────────────────────────────────────
+
+export function addShiftPlanSlot(s: Omit<ShiftPlanSlot, "id">): ShiftPlanSlot {
+  const entry: ShiftPlanSlot = { ...s, id: `SPS-${Date.now()}` };
+  SHIFT_PLAN_SLOTS.push(entry);
+  return entry;
+}
+
+export function deleteShiftPlanSlot(id: string): boolean {
+  const idx = SHIFT_PLAN_SLOTS.findIndex((s) => s.id === id);
+  if (idx === -1) return false;
+  SHIFT_PLAN_SLOTS.splice(idx, 1);
+  return true;
+}
+
+// ─── ProviderAssignment CRUD ─────────────────────────────────────────────────
+
+export function addProviderAssignment(a: Omit<ProviderAssignment, "id">): ProviderAssignment {
+  const entry: ProviderAssignment = { ...a, id: `PA-${Date.now()}` };
+  PROVIDER_ASSIGNMENTS.push(entry);
+  return entry;
+}
+
+export function updateProviderAssignment(id: string, patch: Partial<Omit<ProviderAssignment, "id">>): ProviderAssignment | null {
+  const idx = PROVIDER_ASSIGNMENTS.findIndex((a) => a.id === id);
+  if (idx === -1) return null;
+  PROVIDER_ASSIGNMENTS[idx] = { ...PROVIDER_ASSIGNMENTS[idx], ...patch };
+  return PROVIDER_ASSIGNMENTS[idx];
+}
+
+export function deleteProviderAssignment(id: string): boolean {
+  const idx = PROVIDER_ASSIGNMENTS.findIndex((a) => a.id === id);
+  if (idx === -1) return false;
+  PROVIDER_ASSIGNMENTS.splice(idx, 1);
+  return true;
+}
+
+// ─── ShiftOccurrence CRUD ────────────────────────────────────────────────────
+
+export function addShiftOccurrence(o: Omit<ShiftOccurrence, "id">): ShiftOccurrence {
+  const entry: ShiftOccurrence = { ...o, id: `OCC-${Date.now()}` };
+  SHIFT_OCCURRENCES.push(entry);
+  return entry;
+}
+
+export function updateShiftOccurrence(id: string, patch: Partial<Omit<ShiftOccurrence, "id">>): ShiftOccurrence | null {
+  const idx = SHIFT_OCCURRENCES.findIndex((o) => o.id === id);
+  if (idx === -1) return null;
+  SHIFT_OCCURRENCES[idx] = { ...SHIFT_OCCURRENCES[idx], ...patch };
+  return SHIFT_OCCURRENCES[idx];
+}

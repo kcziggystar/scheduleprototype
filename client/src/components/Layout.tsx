@@ -15,6 +15,10 @@ import {
   Stethoscope,
   Plane,
   CalendarOff,
+  LayoutGrid,
+  Wrench,
+  UserCheck,
+  CalendarDays,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -34,13 +38,17 @@ const PATIENT_NAV = [
 ];
 
 const ADMIN_NAV = [
-  { href: "/admin",              label: "Dashboard",    icon: ClipboardList },
-  { href: "/admin/providers",    label: "Providers",    icon: Users },
-  { href: "/admin/shifts",       label: "Shift Plans",  icon: Calendar },
-  { href: "/admin/locations",    label: "Locations",    icon: MapPin },
-  { href: "/admin/appointments", label: "Appointments", icon: Stethoscope },
-  { href: "/admin/pto",          label: "PTO Editor",   icon: Plane },
-  { href: "/admin/holidays",     label: "Holidays",     icon: CalendarOff },
+  { href: "/admin",                label: "Dashboard",    icon: ClipboardList },
+  { href: "/admin/providers",      label: "Providers",    icon: Users },
+  { href: "/admin/locations",      label: "Locations",    icon: MapPin },
+  { href: "/admin/appointments",   label: "Appointments", icon: Stethoscope },
+  { href: "/admin/pto",            label: "PTO Editor",   icon: Plane },
+  { href: "/admin/holidays",       label: "Holidays",     icon: CalendarOff },
+  // ── Schedule Management ──────────────────────────────
+  { href: "/admin/templates",      label: "Templates",    icon: LayoutGrid },
+  { href: "/admin/plan-builder",   label: "Plan Builder", icon: Wrench },
+  { href: "/admin/assignments",    label: "Assignments",  icon: UserCheck },
+  { href: "/admin/schedule-grid",  label: "Schedule Grid",icon: CalendarDays },
 ];
 
 export function TopNav() {

@@ -18,6 +18,10 @@ import AdminLocations from "./pages/AdminLocations";
 import AdminAppointments from "./pages/AdminAppointments";
 import AdminPto from "./pages/AdminPto";
 import AdminHolidays from "./pages/AdminHolidays";
+import AdminTemplates from "./pages/AdminTemplates";
+import AdminPlanBuilder from "./pages/AdminPlanBuilder";
+import AdminAssignments from "./pages/AdminAssignments";
+import AdminScheduleGrid from "./pages/AdminScheduleGrid";
 
 function Router() {
   return (
@@ -31,6 +35,10 @@ function Router() {
       <Route path="/admin/appointments"    component={AdminAppointments} />
       <Route path="/admin/pto"              component={AdminPto} />
       <Route path="/admin/holidays"         component={AdminHolidays} />
+      <Route path="/admin/templates"        component={AdminTemplates} />
+      <Route path="/admin/plan-builder"     component={AdminPlanBuilder} />
+      <Route path="/admin/assignments"      component={AdminAssignments} />
+      <Route path="/admin/schedule-grid"    component={AdminScheduleGrid} />
       <Route path="/404"                   component={NotFound} />
       <Route                               component={NotFound} />
     </Switch>
