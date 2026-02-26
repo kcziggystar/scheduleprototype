@@ -1,122 +1,68 @@
-/**
- * BrightSmiles – Admin Shift Plans Page
- */
-
+import { trpc } from "@/lib/trpc";
 import { AdminLayout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { SHIFT_PLANS, SHIFTS, SHIFT_SEGMENTS, getLocation } from "@/lib/data";
-import { Clock, MapPin } from "lucide-react";
-
-const DAY_COLORS: Record<string, string> = {
-  Mon: "bg-blue-100 text-blue-700",
-  Tue: "bg-violet-100 text-violet-700",
-  Wed: "bg-emerald-100 text-emerald-700",
-  Thu: "bg-amber-100 text-amber-700",
-  Fri: "bg-rose-100 text-rose-700",
-  Sat: "bg-orange-100 text-orange-700",
-  Sun: "bg-slate-100 text-slate-700",
-};
+import { Calendar } from "lucide-react";
 
 export default function AdminShifts() {
+  const { data: plans = [], isLoading } = trpc.shiftPlans.list.useQuery();
+  const { data: slots = [] } = trpc.shiftPlanSlots.list.useQuery({});
+  const { data: templates = [] } = trpc.shiftTemplates.list.useQuery();
+  const { data: locations = [] } = trpc.locations.list.useQuery();
+
   return (
     <AdminLayout>
-      <div className="p-6 space-y-8">
+      <div className="p-6 space-y-6">
         <div>
           <h1 className="font-display text-2xl font-semibold">Shift Plans</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Shift plans, shifts, and their segment definitions
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">View rotation cycles and their template slots</p>
         </div>
-
-        {SHIFT_PLANS.map((plan) => {
-          const shifts = SHIFTS.filter((s) => s.shiftPlanId === plan.id);
-          return (
-            <div key={plan.id} className="space-y-4">
-              {/* Plan header */}
-              <div className="flex items-center gap-3 flex-wrap">
-                <h2 className="font-display text-lg font-semibold">{plan.name}</h2>
-                <Badge variant="outline">
-                  Cycle: {plan.shiftCycle} {plan.shiftCycleUnit}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  Effective {plan.effectiveDate.split("T")[0]}
-                </span>
-                <span className="font-mono text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">
-                  {plan.id}
-                </span>
-              </div>
-
-              {/* Shifts */}
-              <div className="grid md:grid-cols-2 gap-4">
-                {shifts.map((shift) => {
-                  const segments = SHIFT_SEGMENTS.filter((seg) => seg.shiftId === shift.id);
-                  return (
-                    <Card key={shift.id} className="shadow-sm">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="font-display text-sm flex items-center justify-between">
-                          <span>{shift.name}</span>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs">
-                              Cycle {shift.cycleIndex}
-                            </Badge>
-                            <span className="font-mono text-xs text-muted-foreground">{shift.id}</span>
-                          </div>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {segments.map((seg) => {
-                          const loc = seg.locationId ? getLocation(seg.locationId) : null;
-                          return (
-                            <div
-                              key={seg.id}
-                              className="flex items-start gap-3 p-3 rounded-lg bg-secondary/40 text-sm"
-                            >
-                              <div className="flex-1">
-                                <p className="font-medium text-foreground">{seg.name}</p>
-                                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                                  {seg.weekDays.map((d) => (
-                                    <span
-                                      key={d}
-                                      className={`text-xs px-1.5 py-0.5 rounded font-medium ${DAY_COLORS[d] ?? "bg-gray-100 text-gray-700"}`}
-                                    >
-                                      {d}
-                                    </span>
-                                  ))}
-                                  {seg.daysOfMonth && (
-                                    <span className="text-xs text-muted-foreground">
-                                      Day {seg.daysOfMonth.join(", ")}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="text-right shrink-0 space-y-1">
-                                <div className="flex items-center gap-1 justify-end text-muted-foreground">
-                                  <Clock className="w-3 h-3" />
-                                  <span className="text-xs tabular-nums">{seg.startTime}</span>
-                                </div>
-                                <Badge variant="outline" className="text-xs">{seg.duration}</Badge>
-                                {loc && (
-                                  <div className="flex items-center gap-1 justify-end text-muted-foreground">
-                                    <MapPin className="w-3 h-3" />
-                                    <span className="text-xs">{loc.name.replace(" Clinic", "")}</span>
+        {isLoading ? <p className="text-muted-foreground">Loading…</p> : (
+          <div className="space-y-4">
+            {plans.map(plan => {
+              const planSlots = slots.filter(s => s.shiftPlanId === plan.id);
+              const weekA = planSlots.filter(s => s.cycleIndex === 1);
+              const weekB = planSlots.filter(s => s.cycleIndex === 2);
+              return (
+                <Card key={plan.id} className="shadow-sm">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="font-display text-base flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-primary" /> {plan.name}
+                      </CardTitle>
+                      <Badge variant="outline">{plan.shiftCycle} {plan.shiftCycleUnit} cycle</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Effective {plan.effectiveDate}</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {[{ label: "Week A", items: weekA }, { label: "Week B", items: weekB }].map(({ label, items }) => (
+                        <div key={label}>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">{label}</p>
+                          {items.length === 0 ? <p className="text-xs text-muted-foreground">No slots</p> : (
+                            <div className="space-y-1">
+                              {items.map(slot => {
+                                const tmpl = templates.find(t => t.id === slot.templateId);
+                                const loc = locations.find(l => l.id === tmpl?.locationId);
+                                return (
+                                  <div key={slot.id} className="flex items-center gap-2 p-2 rounded bg-secondary/50 text-xs">
+                                    <div className={`w-2 h-2 rounded-full ${tmpl?.color ?? "bg-sky-500"}`} />
+                                    <span className="font-medium">{tmpl?.name ?? slot.templateId}</span>
+                                    <span className="text-muted-foreground">{loc?.name}</span>
                                   </div>
-                                )}
-                              </div>
+                                );
+                              })}
                             </div>
-                          );
-                        })}
-                        {segments.length === 0 && (
-                          <p className="text-xs text-muted-foreground italic">No segments defined</p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

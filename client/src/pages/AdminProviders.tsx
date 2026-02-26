@@ -1,104 +1,98 @@
-/**
- * BrightSmiles – Admin Providers Page
- */
-
+import { useState } from "react";
+import { trpc } from "@/lib/trpc";
 import { AdminLayout } from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  PROVIDERS,
-  SHIFT_PLANS,
-  SHIFTS,
-  HOLIDAY_CALENDARS,
-  PTO_CALENDARS,
-  getLocation,
-} from "@/lib/data";
-import { MapPin, Calendar, CalendarOff, Plane } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Pencil, Trash2, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminProviders() {
+  const utils = trpc.useUtils();
+  const { data: providers = [], isLoading } = trpc.providers.list.useQuery();
+  const { data: locations = [] } = trpc.locations.list.useQuery();
+  const upsert = trpc.providers.upsert.useMutation({ onSuccess: () => { utils.providers.list.invalidate(); toast.success("Provider saved"); setOpen(false); } });
+  const del = trpc.providers.delete.useMutation({ onSuccess: () => { utils.providers.list.invalidate(); toast.success("Provider deleted"); setDeleteId(null); } });
+
+  const [open, setOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string|null>(null);
+  const [form, setForm] = useState({ id: undefined as string|undefined, name:"", role:"Dentist" as "Dentist"|"Hygienist", primaryLocationId:"", bio:"", photoUrl:"", ptoCalendarId:"", holidayCalendarId:"" });
+
+  const openAdd = () => { setForm({ id:undefined, name:"", role:"Dentist", primaryLocationId: locations[0]?.id ?? "", bio:"", photoUrl:"", ptoCalendarId:"", holidayCalendarId:"" }); setOpen(true); };
+  const openEdit = (p: typeof providers[0]) => { setForm({ id: p.id, name: p.name, role: p.role, primaryLocationId: p.primaryLocationId, bio: p.bio ?? "", photoUrl: p.photoUrl ?? "", ptoCalendarId: p.ptoCalendarId, holidayCalendarId: p.holidayCalendarId }); setOpen(true); };
+
   return (
     <AdminLayout>
       <div className="p-6 space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-semibold">Providers</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Dentists and hygienists with their scheduling configuration
-          </p>
+        <div className="flex items-center justify-between">
+          <div><h1 className="font-display text-2xl font-semibold">Providers</h1><p className="text-muted-foreground text-sm mt-1">{providers.length} providers</p></div>
+          <Button onClick={openAdd} className="gap-2"><Plus className="w-4 h-4" /> Add Provider</Button>
         </div>
-
-        <div className="grid gap-6">
-          {PROVIDERS.map((provider) => {
-            const primaryLoc = getLocation(provider.primaryLocationId);
-            const holCal = HOLIDAY_CALENDARS.find((h) => h.id === provider.holidayCalendarId);
-            const ptoCal = PTO_CALENDARS.find((p) => p.id === provider.ptoCalendarId);
-            const plans = SHIFT_PLANS.filter((sp) => provider.shiftPlanIds.includes(sp.id));
-            const currentShift = SHIFTS.find((s) => s.id === provider.currentShiftId);
-
-            return (
-              <Card key={provider.id} className="shadow-sm overflow-hidden">
-                <div className="flex flex-col md:flex-row">
-                  {/* Photo */}
-                  <div className="md:w-48 shrink-0">
-                    <img
-                      src={provider.photoUrl}
-                      alt={provider.name}
-                      className="w-full h-48 md:h-full object-cover object-top"
-                    />
-                  </div>
-
-                  {/* Details */}
-                  <div className="flex-1 p-6">
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
+        {isLoading ? <p className="text-muted-foreground">Loading…</p> : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {providers.map(p => {
+              const loc = locations.find(l => l.id === p.primaryLocationId);
+              return (
+                <Card key={p.id} className="shadow-sm overflow-hidden">
+                  {p.photoUrl && <div className="h-40 overflow-hidden"><img src={p.photoUrl} alt={p.name} className="w-full h-full object-cover object-top" /></div>}
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="font-display text-xl font-semibold">{provider.name}</h2>
-                          <Badge variant={provider.role === "Dentist" ? "default" : "secondary"}>
-                            {provider.role}
-                          </Badge>
-                        </div>
-                        <p className="text-muted-foreground text-sm mt-1">{provider.bio}</p>
+                        <h3 className="font-display font-semibold">{p.name}</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">{loc?.name}</p>
                       </div>
-                      <span className="font-mono text-xs text-muted-foreground bg-secondary px-2 py-1 rounded">
-                        {provider.id}
-                      </span>
+                      <Badge variant={p.role === "Dentist" ? "default" : "secondary"} className="text-xs shrink-0">{p.role}</Badge>
                     </div>
+                    {p.bio && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{p.bio}</p>}
+                    <div className="flex gap-2 mt-4">
+                      <Button variant="outline" size="sm" className="flex-1 gap-1" onClick={() => openEdit(p)}><Pencil className="w-3 h-3" /> Edit</Button>
+                      <Button variant="outline" size="sm" className="text-destructive" onClick={() => setDeleteId(p.id)}><Trash2 className="w-3 h-3" /></Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>{form.id ? "Edit Provider" : "Add Provider"}</DialogTitle></DialogHeader>
+            <div className="space-y-4 py-2">
+              <div><Label>Name</Label><Input value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} /></div>
+              <div><Label>Role</Label>
+                <Select value={form.role} onValueChange={v => setForm(f => ({...f, role: v as "Dentist"|"Hygienist"}))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="Dentist">Dentist</SelectItem><SelectItem value="Hygienist">Hygienist</SelectItem></SelectContent>
+                </Select>
+              </div>
+              <div><Label>Primary Location</Label>
+                <Select value={form.primaryLocationId} onValueChange={v => setForm(f => ({...f, primaryLocationId: v}))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{locations.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div><Label>Bio</Label><Input value={form.bio} onChange={e => setForm(f => ({...f, bio: e.target.value}))} /></div>
+              <div><Label>Photo URL</Label><Input value={form.photoUrl} onChange={e => setForm(f => ({...f, photoUrl: e.target.value}))} /></div>
 
-                    <div className="mt-4 grid sm:grid-cols-2 gap-3">
-                      <InfoRow icon={<MapPin className="w-4 h-4 text-primary" />} label="Primary Location" value={primaryLoc?.name ?? "—"} />
-                      <InfoRow icon={<Calendar className="w-4 h-4 text-primary" />} label="Current Shift" value={currentShift?.name ?? "—"} />
-                      <InfoRow icon={<CalendarOff className="w-4 h-4 text-destructive" />} label="Holiday Calendar" value={holCal?.name ?? "—"} />
-                      <InfoRow icon={<Plane className="w-4 h-4 text-amber-500" />} label="PTO Calendar" value={ptoCal?.name ?? "—"} />
-                    </div>
-
-                    <div className="mt-4">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Shift Plans</p>
-                      <div className="flex flex-wrap gap-2">
-                        {plans.map((sp) => (
-                          <Badge key={sp.id} variant="outline" className="text-xs">
-                            {sp.name} ({sp.shiftCycle} {sp.shiftCycleUnit})
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button onClick={() => upsert.mutate(form)} disabled={upsert.isPending || !form.name}>{upsert.isPending ? "Saving…" : "Save"}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader><AlertDialogTitle>Delete provider?</AlertDialogTitle><AlertDialogDescription>This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+            <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={() => deleteId && del.mutate({ id: deleteId })}>Delete</AlertDialogAction></AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
-  );
-}
-
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-2">
-      <span className="mt-0.5 shrink-0">{icon}</span>
-      <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium text-foreground">{value}</p>
-      </div>
-    </div>
   );
 }

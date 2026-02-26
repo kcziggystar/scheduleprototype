@@ -22,8 +22,8 @@ import AdminTemplates from "./pages/AdminTemplates";
 import AdminPlanBuilder from "./pages/AdminPlanBuilder";
 import AdminAssignments from "./pages/AdminAssignments";
 import AdminScheduleGrid from "./pages/AdminScheduleGrid";
-
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path="/"                      component={Home} />

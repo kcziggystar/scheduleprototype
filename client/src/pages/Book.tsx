@@ -20,13 +20,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  PROVIDERS,
-  LOCATIONS,
   APPOINTMENT_TYPES,
-  APPOINTMENTS,
-  getLocation,
   type Provider,
 } from "@/lib/data";
+import { trpc } from "@/lib/trpc";
 import {
   getAvailableSlots,
   getMonthAvailability,
@@ -115,9 +112,9 @@ interface BookingState {
   notes: string;
 }
 
-function SummaryCard({ state }: { state: BookingState }) {
+function SummaryCard({ state, locations }: { state: BookingState; locations: Array<{id:string;name:string;address:string;phone:string;timezone:string}> }) {
   const apptType = APPOINTMENT_TYPES.find((t) => t.value === state.appointmentType);
-  const loc = state.locationId ? getLocation(state.locationId) : null;
+  const loc = state.locationId ? locations.find(l => l.id === state.locationId) : null;
 
   return (
     <Card className="shadow-sm sticky top-24">
@@ -287,6 +284,8 @@ function MiniCalendar({
 
 export default function Book() {
   const [step, setStep] = useState(0);
+  const { data: providers = [] } = trpc.providers.list.useQuery();
+  const { data: locations = [] } = trpc.locations.list.useQuery();
   const [state, setState] = useState<BookingState>({
     appointmentType: "",
     provider: null,
@@ -329,6 +328,8 @@ export default function Book() {
     );
   }, [state.provider, state.date, durationMinutes, state.locationId]);
 
+  const utils = trpc.useUtils();
+  const bookAppt = trpc.appointments.upsert.useMutation({ onSuccess: () => { utils.appointments.list.invalidate(); next(); toast.success("Appointment confirmed!"); } });
   function next() { setStep((s) => s + 1); }
   function back() { setStep((s) => s - 1); }
 
@@ -342,22 +343,22 @@ export default function Book() {
       ? state.locationId
       : slotResult?.slots.find((s) => s.time === state.time)?.locationId ?? state.provider.primaryLocationId;
 
-    APPOINTMENTS.push({
-      id: nanoid(8),
+    const [hh, mm] = (state.time || "00:00").split(":").map(Number);
+    const endMinutes = (hh * 60 + mm) + durationMinutes;
+    const endTime = minutesToTime(endMinutes);
+    bookAppt.mutate({
       providerId: state.provider.id,
       locationId: loc,
       patientName: state.patientName,
       patientEmail: state.patientEmail,
-      patientPhone: state.patientPhone,
+      patientPhone: state.patientPhone ?? "",
       appointmentType: state.appointmentType,
       date: state.date,
       startTime: state.time,
+      endTime,
       durationMinutes,
-      notes: state.notes,
-      bookedAt: new Date().toISOString(),
+      notes: state.notes ?? "",
     });
-    next();
-    toast.success("Appointment confirmed!");
   }
 
   return (
@@ -428,7 +429,7 @@ export default function Book() {
                       >
                         Any Location
                       </button>
-                      {LOCATIONS.map((loc) => (
+                      {locations.map((loc) => (
                         <button
                           key={loc.id}
                           onClick={() => update({ locationId: loc.id })}
@@ -443,13 +444,13 @@ export default function Book() {
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-4">
-                      {PROVIDERS.map((p) => {
-                        const loc = getLocation(p.primaryLocationId);
+                      {providers.map((p) => {
+                        const loc = locations.find(l => l.id === p.primaryLocationId);
                         const isSelected = state.provider?.id === p.id;
                         return (
                           <button
                             key={p.id}
-                            onClick={() => update({ provider: p })}
+                            onClick={() => update({ provider: p as unknown as Provider, locationId: "" })}
                             className={cn(
                               "rounded-xl border-2 overflow-hidden text-left transition-all",
                               isSelected ? "border-primary" : "border-border hover:border-primary/40"
@@ -457,7 +458,7 @@ export default function Book() {
                           >
                             <div className="h-40 overflow-hidden">
                               <img
-                                src={p.photoUrl}
+                                src={p.photoUrl ?? undefined}
                                 alt={p.name}
                                 className="w-full h-full object-cover object-top"
                               />
@@ -544,7 +545,7 @@ export default function Book() {
                     {slotResult && slotResult.slots.length > 0 && (
                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                         {slotResult.slots.map((slot, i) => {
-                          const loc = getLocation(slot.locationId);
+                          const loc = locations.find(l => l.id === slot.locationId);
                           const isSelected = state.time === slot.time && (state.locationId === slot.locationId || !state.locationId);
                           return (
                             <button
@@ -672,7 +673,7 @@ export default function Book() {
                         <Row icon={<Stethoscope className="w-4 h-4 text-primary" />} label="Appointment" value={apptType?.label ?? ""} />
                         <Row icon={<CalendarCheck className="w-4 h-4 text-primary" />} label="Date" value={state.date} />
                         <Row icon={<Clock className="w-4 h-4 text-primary" />} label="Time" value={`${state.time} (${durationMinutes} min)`} />
-                        <Row icon={<MapPin className="w-4 h-4 text-primary" />} label="Location" value={getLocation(state.locationId)?.name ?? ""} />
+                        <Row icon={<MapPin className="w-4 h-4 text-primary" />} label="Location" value={locations.find(l => l.id === state.locationId)?.name ?? ""} />
                         <Row icon={<User className="w-4 h-4 text-primary" />} label="Patient" value={state.patientName} />
                       </CardContent>
                     </Card>
@@ -710,7 +711,7 @@ export default function Book() {
               {/* Sticky summary */}
               {step > 0 && step < 5 && (
                 <div className="hidden lg:block w-64 shrink-0">
-                  <SummaryCard state={state} />
+                  <SummaryCard state={state} locations={locations} />
                 </div>
               )}
             </div>

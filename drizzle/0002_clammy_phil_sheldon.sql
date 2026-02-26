@@ -1,0 +1,1 @@
+ALTER TABLE `providers` MODIFY COLUMN `photoUrl` text;
