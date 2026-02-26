@@ -56,7 +56,7 @@ export default function Home() {
               const loc = locations.find(l => l.id === p.primaryLocationId);
               return (
                 <Card key={p.id} className="shadow-sm overflow-hidden">
-                  {p.photoUrl && <div className="h-56 overflow-hidden"><img src={p.photoUrl} alt={p.name} className="w-full h-full object-cover object-top" /></div>}
+                  {p.photoUrl && <div className="h-56 overflow-hidden"><img src={p.photoUrl} alt={p.name} className="w-full h-full object-cover object-[center_15%]" /></div>}
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between">
                       <div><h3 className="font-display font-semibold text-foreground">{p.name}</h3><p className="text-xs text-muted-foreground mt-0.5">{loc?.name}</p></div>

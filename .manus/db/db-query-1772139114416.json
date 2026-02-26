@@ -1,0 +1,9 @@
+{
+  "query": "\nUPDATE providers SET photoUrl = 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663029561497/mIwMhhHtnGZNQbEw.jpg' WHERE id = 'prov-lee';\nUPDATE providers SET photoUrl = 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663029561497/hxUUzaOOdMiJJXqw.jpg' WHERE id = 'prov-patel';\nUPDATE providers SET photoUrl = 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663029561497/hKDeTOLXHSvQWFyT.jpg' WHERE id = 'prov-chen';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user WfQK6URw8Msk1xy.f34149babb6e --database fnuXEgpC9pWoTtDCGCkzEf --execute \nUPDATE providers SET photoUrl = 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663029561497/mIwMhhHtnGZNQbEw.jpg' WHERE id = 'prov-lee';\nUPDATE providers SET photoUrl = 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663029561497/hxUUzaOOdMiJJXqw.jpg' WHERE id = 'prov-patel';\nUPDATE providers SET photoUrl = 'https://files.manuscdn.com/user_upload_by_module/session_file/310419663029561497/hKDeTOLXHSvQWFyT.jpg' WHERE id = 'prov-chen';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 101
+}

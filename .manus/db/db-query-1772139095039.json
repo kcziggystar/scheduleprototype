@@ -1,0 +1,25 @@
+{
+  "query": "SELECT id, name, photoUrl FROM providers;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user WfQK6URw8Msk1xy.f34149babb6e --database fnuXEgpC9pWoTtDCGCkzEf --execute SELECT id, name, photoUrl FROM providers;",
+  "rows": [
+    {
+      "id": "prov-chen",
+      "name": "Sarah Chen RDH",
+      "photoUrl": "https://ui-avatars.com/api/?name=Lisa+Chen&size=400&background=7BC67E&color=fff&bold=true&font-size=0.33"
+    },
+    {
+      "id": "prov-lee",
+      "name": "Dr. Jamie Lee",
+      "photoUrl": "https://ui-avatars.com/api/?name=Sarah+Lee&size=400&background=4A90D9&color=fff&bold=true&font-size=0.33"
+    },
+    {
+      "id": "prov-patel",
+      "name": "Dr. Priya Patel",
+      "photoUrl": "https://ui-avatars.com/api/?name=Raj+Patel&size=400&background=E8A87C&color=fff&bold=true&font-size=0.33"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tphotoUrl\nprov-chen\tSarah Chen RDH\thttps://ui-avatars.com/api/?name=Lisa+Chen&size=400&background=7BC67E&color=fff&bold=true&font-size=0.33\nprov-lee\tDr. Jamie Lee\thttps://ui-avatars.com/api/?name=Sarah+Lee&size=400&background=4A90D9&color=fff&bold=true&font-size=0.33\nprov-patel\tDr. Priya Patel\thttps://ui-avatars.com/api/?name=Raj+Patel&size=400&background=E8A87C&color=fff&bold=true&font-size=0.33\n",
+  "stderr": "",
+  "execution_time_ms": 47
+}

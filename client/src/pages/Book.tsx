@@ -359,7 +359,7 @@ export default function Book() {
                               className={cn("rounded-xl border-2 overflow-hidden text-left transition-all",
                                 isSelected ? "border-primary" : "border-border hover:border-primary/40")}>
                               <div className="h-40 overflow-hidden bg-muted">
-                                <img src={avatarUrl} alt={p.name} className="w-full h-full object-cover object-top" />
+                                <img src={avatarUrl} alt={p.name} className="w-full h-full object-cover object-[center_15%]" />
                               </div>
                               <div className="p-4 bg-white">
                                 <div className="flex items-start justify-between">
