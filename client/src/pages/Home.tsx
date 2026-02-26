@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Phone, ArrowRight, Star, Shield, Clock } from "lucide-react";
 
-const HERO_URL = "https://private-us-east-1.manuscdn.com/sessionFile/YlJexUWVPBghLTUyI8mNx8/sandbox/rVDf31o4i8qp7h6k1qtNAK-img-1_1772039493000_na1fn_aGVyby1iZw.jpg?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvWWxKZXhVV1ZQQmdoTFRVeUk4bU54OC9zYW5kYm94L3JWRGYzMW80aThxcDdoNmsxcXROQUstaW1nLTFfMTc3MjAzOTQ5MzAwMF9uYTFmbl9hR1Z5YnkxaVp3LmpwZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzE5MjAsaF8xOTIwL2Zvcm1hdCx3ZWJwL3F1YWxpdHkscV84MCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=qHFfc-DRqpm31BunLgCmanY7XIV9bfrViouVfqjtMzmGbUSIqae05MaEEBggN4DcCTrP7ka92gyLdGIBsWa7Qcat0FwhS50K~NE7Iaz~W5nOZ0jGKZWXYaR7naeOdJvI9ldhisUcbruNpqaEe6MYQSq5LmflOshghER9FrI2KP4Vp4i1Ga75vTpUa8fVZYPmicUVynUFWQYhnBD7FMTUG-4vZosS0h4kYF6j4arA87M-wWt~XzxDwZB6v10UbeqXbqnXDbDDHk5XinQKCR9hlEm-DAp49Qh0RLFaVmLdNfHIrOQgsYsPkeKOvqpghPGQpkYVnmBRDeBsH5EEzcepEA__";
+const HERO_URL = "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1920&q=80&auto=format&fit=crop";
 
 const FEATURES = [
   { icon: Star,   title: "Expert Care",         desc: "Board-certified dentists and hygienists with 10+ years of experience." },

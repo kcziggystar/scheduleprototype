@@ -8,7 +8,7 @@ import {
   getLocations, getLocation, upsertLocation, deleteLocation,
   getHolidayCalendars, getHolidayDates, upsertHolidayDate, deleteHolidayDate,
   getPtoCalendars, getPtoEntries, upsertPtoEntry, deletePtoEntry,
-  getProviders, getProvider, upsertProvider, deleteProvider,
+  getProviders, getProvider, upsertProvider, deleteProvider, getProvidersWithSchedule,
   getShiftTemplates, upsertShiftTemplate, deleteShiftTemplate,
   getShiftPlans, upsertShiftPlan, deleteShiftPlan,
   getShiftPlanSlots, upsertShiftPlanSlot, deleteShiftPlanSlot,
@@ -62,6 +62,7 @@ export const appRouter = router({
 
   providers: router({
     list: publicProcedure.query(() => getProviders()),
+    listWithSchedule: publicProcedure.query(() => getProvidersWithSchedule()),
     get: publicProcedure.input(z.object({ id: z.string() })).query(({ input }) => getProvider(input.id)),
     upsert: publicProcedure
       .input(z.object({ id: z.string().optional(), name: z.string(), role: z.enum(["Dentist", "Hygienist"]), bio: z.string().nullable().optional(), photoUrl: z.string().nullable().optional(), primaryLocationId: z.string(), ptoCalendarId: z.string(), holidayCalendarId: z.string() }))
@@ -72,7 +73,7 @@ export const appRouter = router({
   shiftTemplates: router({
     list: publicProcedure.query(() => getShiftTemplates()),
     upsert: publicProcedure
-      .input(z.object({ id: z.string().optional(), name: z.string(), locationId: z.string(), weekDays: z.string(), startTime: z.string(), duration: z.string(), defaultRole: z.enum(["Dentist", "Hygienist"]), color: z.string().default("bg-sky-500") }))
+      .input(z.object({ id: z.string().optional(), name: z.string(), locationId: z.string(), weekDays: z.string(), startTime: z.string(), endTime: z.string().default("17:00"), duration: z.string(), segmentsJson: z.string().nullable().optional(), defaultRole: z.enum(["Dentist", "Hygienist"]), color: z.string().default("bg-sky-500") }))
       .mutation(async ({ input }) => { const id = input.id ?? `tmpl-${nanoid(8)}`; await upsertShiftTemplate({ ...input, id }); return { id }; }),
     delete: publicProcedure.input(z.object({ id: z.string() })).mutation(({ input }) => deleteShiftTemplate(input.id)),
   }),

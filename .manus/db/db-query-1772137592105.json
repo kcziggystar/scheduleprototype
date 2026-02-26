@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE providers SET photoUrl = 'https://ui-avatars.com/api/?name=Sarah+Lee&size=400&background=4A90D9&color=fff&bold=true&font-size=0.33' WHERE id = 'prov-lee';\nUPDATE providers SET photoUrl = 'https://ui-avatars.com/api/?name=Raj+Patel&size=400&background=E8A87C&color=fff&bold=true&font-size=0.33' WHERE id = 'prov-patel';\nUPDATE providers SET photoUrl = 'https://ui-avatars.com/api/?name=Lisa+Chen&size=400&background=7BC67E&color=fff&bold=true&font-size=0.33' WHERE id = 'prov-chen';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user WfQK6URw8Msk1xy.f34149babb6e --database fnuXEgpC9pWoTtDCGCkzEf --execute UPDATE providers SET photoUrl = 'https://ui-avatars.com/api/?name=Sarah+Lee&size=400&background=4A90D9&color=fff&bold=true&font-size=0.33' WHERE id = 'prov-lee';\nUPDATE providers SET photoUrl = 'https://ui-avatars.com/api/?name=Raj+Patel&size=400&background=E8A87C&color=fff&bold=true&font-size=0.33' WHERE id = 'prov-patel';\nUPDATE providers SET photoUrl = 'https://ui-avatars.com/api/?name=Lisa+Chen&size=400&background=7BC67E&color=fff&bold=true&font-size=0.33' WHERE id = 'prov-chen';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 124
+}

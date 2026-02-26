@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Pencil, Trash2, Plus, CalendarOff } from "lucide-react";
+import { Pencil, Trash2, Plus, CalendarOff, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminHolidays() {
@@ -37,6 +37,10 @@ export default function AdminHolidays() {
         <div className="flex items-center justify-between">
           <div><h1 className="font-display text-2xl font-semibold">Holiday Calendar</h1><p className="text-muted-foreground text-sm mt-1">Manage clinic holiday dates</p></div>
           <Button onClick={openAdd} className="gap-2"><Plus className="w-4 h-4" /> Add Holiday</Button>
+        </div>
+        <div className="flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sky-800">
+          <Info className="w-4 h-4 mt-0.5 shrink-0 text-sky-600" />
+          <p className="text-sm">Holiday dates apply to <strong>all providers and resources</strong> across the clinic. When a holiday is added here, no appointments can be booked on that day for any provider.</p>
         </div>
         {isLoading ? <p className="text-muted-foreground">Loading…</p> : (
           <div className="space-y-4">

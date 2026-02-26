@@ -353,3 +353,37 @@ export async function deleteAppointment(id: string) {
   if (!db) throw new Error('DB unavailable');
   await db.delete(appointments).where(eq(appointments.id, id));
 }
+
+// ─── Provider with schedule info ──────────────────────────────────────────────
+/**
+ * Returns all providers enriched with shiftPlanIds derived from their
+ * active provider_assignments → shift_plan_slots → shift_plans chain.
+ * This is the shape the client-side scheduler engine expects.
+ */
+export async function getProvidersWithSchedule() {
+  const db = await getDb();
+  if (!db) return [];
+  const allProviders = await db.select().from(providers);
+  const allAssignments = await db.select().from(providerAssignments);
+  const allSlots = await db.select().from(shiftPlanSlots);
+  const allHolidayDates = await db.select().from(holidayDates);
+  const allPtoEntries = await db.select().from(ptoEntries);
+
+  return allProviders.map((p) => {
+    const assignments = allAssignments.filter((a) => a.providerId === p.id);
+    const planIds = Array.from(new Set(
+      assignments
+        .map((a) => allSlots.find((s) => s.id === a.shiftPlanSlotId)?.shiftPlanId)
+        .filter((id): id is string => Boolean(id))
+    ));
+    const provHolidays = allHolidayDates.filter((h) => h.calendarId === p.holidayCalendarId);
+    const provPto = allPtoEntries.filter((e) => e.calendarId === p.ptoCalendarId);
+    return {
+      ...p,
+      shiftPlanIds: planIds,
+      currentShiftId: planIds[0] ?? "",
+      holidayDates: provHolidays,
+      ptoEntries: provPto,
+    };
+  });
+}

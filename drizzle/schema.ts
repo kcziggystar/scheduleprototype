@@ -125,7 +125,10 @@ export const shiftTemplates = mysqlTable("shift_templates", {
   locationId: varchar("locationId", { length: 64 }).notNull(),
   weekDays: varchar("weekDays", { length: 128 }).notNull(),
   startTime: varchar("startTime", { length: 5 }).notNull(),
+  endTime: varchar("endTime", { length: 5 }).notNull().default("17:00"),
   duration: varchar("duration", { length: 16 }).notNull(),
+  /** JSON: [{day,seg1Start,seg1End,seg2Start?,seg2End?}] for per-day 2-segment config */
+  segmentsJson: text("segmentsJson"),
   defaultRole: mysqlEnum("defaultRole", ["Dentist", "Hygienist"]).notNull(),
   color: varchar("color", { length: 64 }).notNull().default("bg-sky-500"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
